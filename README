@@ -1,1 +1,538 @@
-
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -928,
+        -560
+      ],
+      "id": "2b93a06b-760a-4f6c-826c-6e8471e08475",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://www.yna.co.kr/rss/news.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -736,
+        -544
+      ],
+      "id": "794bc0f5-b9a2-4b3c-87c5-f5517db3e75a",
+      "name": "YNA"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        -544
+      ],
+      "id": "1e9a9cfa-5b18-4ab6-8793-051ba2f6af99",
+      "name": "XML"
+    },
+    {
+      "parameters": {
+        "jsCode": "const articles = $json.rss.channel.item || [];\n\nreturn articles.map(article => {\n  return {\n    json: {\n      title: article.title || \"\",\n      link: article.link || \"\",\n      description: article.description || \"\",\n      pubDate: article.pubDate || \"\",\n      creator: article[\"dc:creator\"] || \"\",\n      source: \"연합뉴스\",\n      uniqueKey: article.link || article.guid?._ || article.guid || \"\"\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        -544
+      ],
+      "id": "7ed1fac6-81ce-449f-bd68-65deafaa33e5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        -352
+      ],
+      "id": "c8af441d-72a9-4a60-a3d0-1e7116c4aa3c",
+      "name": "XML1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const articles = $json.rss.channel.item || [];\n\nreturn articles.map(article => {\n  return {\n    json: {\n      title: article.title || \"\",\n      link: article.link || \"\",\n      description: article.description || \"\",\n      pubDate: article.pubDate || \"\",\n      author: article.author || \"\",\n      source: \"한국경제\",\n      uniqueKey: article.link || article.guid?._ || article.guid || \"\"\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        -352
+      ],
+      "id": "8df9097a-9742-417b-b4c3-41f07a7be806",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "url": "https://www.hankyung.com/feed/all-news",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -736,
+        -352
+      ],
+      "id": "e720df0b-6e3f-482f-9dba-110f37fa1ddd",
+      "name": "Hankyung"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        -144
+      ],
+      "id": "c07ba489-3e7f-4202-b969-6f3abba05ee7",
+      "name": "XML2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const articles = $json.rss.channel.item || [];\n\nreturn articles.map(article => {\n  return {\n    json: {\n      title: article.title || \"\",\n      link: article.link || \"\",\n      description:\n        article.description ||\n        article[\"content:encoded\"] ||\n        \"\",\n      pubDate: article.pubDate || \"\",\n      author:\n        article.author ||\n        article[\"dc:creator\"] ||\n        \"\",\n      source: \"파이낸셜뉴스\",\n      uniqueKey:\n        article.link ||\n        article.guid?._ ||\n        article.guid ||\n        \"\"\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        -144
+      ],
+      "id": "7d6b66e9-4ca4-4240-87ab-8ced7be7bedd",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "url": "http://www.fnnews.com/rss/r20/fn_realnews_all.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -736,
+        -144
+      ],
+      "id": "3dc62d11-5bc0-4826-9334-db7c282ff639",
+      "name": "fnnews"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        0,
+        -400
+      ],
+      "id": "fa6c1138-d301-4c99-961e-e6d8fab074df",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const seenLinks = new Set();\nconst seenTitles = new Set();\nconst results = [];\n\nfunction normalizeTitle(title) {\n  return (title || \"\")\n    .replace(/\\[[^\\]]*\\]/g, \"\")\n    .replace(/[^\\w가-힣\\s]/g, \"\")\n    .replace(/\\s+/g, \" \")\n    .trim()\n    .slice(0, 35);\n}\n\nfor (const item of items) {\n  const link = item.json.link || \"\";\n  const titleKey = normalizeTitle(item.json.title);\n\n  if (!link || !titleKey) continue;\n\n  if (seenLinks.has(link)) continue;\n  if (seenTitles.has(titleKey)) continue;\n\n  seenLinks.add(link);\n  seenTitles.add(titleKey);\n\n  results.push(item);\n}\n\nreturn results.slice(0, 80);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        -384
+      ],
+      "id": "5335e5d2-a9b0-4155-ae3d-60aac357ced1",
+      "name": "Deduplicate News"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items\n  .sort((a, b) => {\n    const dateA = new Date(a.json.pubDate || 0);\n    const dateB = new Date(b.json.pubDate || 0);\n\n    return dateB - dateA;\n  })\n  .slice(0, 20);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        -384
+      ],
+      "id": "ae0fef5b-75bd-42e7-b5d7-cf62c47aa732",
+      "name": "Top 20 Filter"
+    },
+    {
+      "parameters": {
+        "jsCode": "const articles = items.map(item => ({\n  title: item.json.title || \"\",\n  link: item.json.link || \"\",\n  description: item.json.description || \"\",\n  pubDate: item.json.pubDate || \"\",\n  source: item.json.source || \"\"\n}));\n\nreturn [\n  {\n    json: {\n      articlesText: JSON.stringify(articles, null, 2)\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        -384
+      ],
+      "id": "2a34bea4-9747-404e-a400-c98b9440ecee",
+      "name": "Aggregate News"
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $json.output?.[0]?.content?.[0]?.text || $json.text || $json.output || \"\";\n\nif (typeof raw !== \"string\") {\n  raw = JSON.stringify(raw);\n}\n\nraw = raw\n  .replace(/```json/g, \"\")\n  .replace(/```/g, \"\")\n  .trim();\n\nconst parsed = JSON.parse(raw);\n\nreturn parsed.map(article => ({\n  json: {\n    title: article.title || \"\",\n    link: article.link || \"\",\n    source: article.source || \"\",\n    publishedAt: article.publishedAt || \"\",\n    reason: article.reason || \"\"\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        -400
+      ],
+      "id": "ecaaff62-5b66-417e-ae13-0923176795e7",
+      "name": "Parse Top 3"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "당신은 뉴스 요약 전문가입니다.\n\n뉴스를 3문장 이내로 요약하세요.\n\nJSON 금지\n마크다운 금지\n설명 금지\n\n요약문만 출력하세요."
+            },
+            {
+              "content": "=제목:\n{{ $json.title }}\n\n선정 이유:\n{{ $json.reason }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1072,
+        -784
+      ],
+      "id": "0fbe379b-af2a-474a-ae48-4025e64385f8",
+      "name": "AI 요약",
+      "credentials": {
+        "openAiApi": {
+          "id": "8qXymgPOnAZUggvG",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=당신은 뉴스 편집국 데스크입니다.\n\n아래 기사 목록에서 오늘 가장 중요한 뉴스 3건만 선정하세요.\n\n선정 기준\n- 국민 생활 영향\n- 경제 영향\n- 국제 영향\n- 장기 파급력\n- 동일 사건 중복 제거\n- 정치적 편향 금지\n\n반드시 JSON 배열만 출력하세요.\n\n예시:\n\n[\n  {\n    \"title\": \"기사 제목\",\n    \"link\": \"기사 링크\",\n    \"source\": \"언론사\",\n    \"reason\": \"선정 이유\"\n  }\n]"
+            },
+            {
+              "content": "=기사 목록:\n\n{{ $json.articlesText }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -384
+      ],
+      "id": "ceea3a4a-e519-4dcb-9851-4b9d1d405012",
+      "name": "Top3 선정",
+      "credentials": {
+        "openAiApi": {
+          "id": "8qXymgPOnAZUggvG",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1344,
+        -400
+      ],
+      "id": "5853cc6b-4be8-414e-9276-44331108e1ac",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        -400
+      ],
+      "id": "78888b03-5966-4839-844f-a5fffb6f3e96",
+      "name": "Create a database page"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "YNA",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Hankyung",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "fnnews",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YNA": {
+      "main": [
+        [
+          {
+            "node": "XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hankyung": {
+      "main": [
+        [
+          {
+            "node": "XML1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fnnews": {
+      "main": [
+        [
+          {
+            "node": "XML2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Deduplicate News",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deduplicate News": {
+      "main": [
+        [
+          {
+            "node": "Top 20 Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Top 20 Filter": {
+      "main": [
+        [
+          {
+            "node": "Aggregate News",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate News": {
+      "main": [
+        [
+          {
+            "node": "Top3 선정",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Top 3": {
+      "main": [
+        [
+          {
+            "node": "AI 요약",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AI 요약": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Top3 선정": {
+      "main": [
+        [
+          {
+            "node": "Parse Top 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "20a7de8c-b99e-4c63-8c91-a9802f996000",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fb6660460a9c592da2c37732719fb77cc248d0b41b7d6fc980b55f5d86989d4f"
+  },
+  "nodeGroups": [],
+  "id": "SKVzaQXgXzwGcITc",
+  "tags": []
+}
